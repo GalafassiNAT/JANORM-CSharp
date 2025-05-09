@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JANORM")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+66721dc43dc4219a1816ac941f6d3f5c996f46a1")]
 [assembly: System.Reflection.AssemblyProductAttribute("JANORM")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JANORM")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

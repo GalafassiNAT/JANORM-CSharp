@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\natan\\Desktop\\Faculdade\\Sexto periodo\\ALP\\Trabalho 01\\psql-ORM-Csharp\\JANORM\\JANORM.csproj": {}
+    "/home/nora/Desktop/Faculdade/Sexto Periodo/ALP/trabalho01/psql-ORM-Csharp/JANORM/JANORM.csproj": {}
   },
   "projects": {
-    "C:\\Users\\natan\\Desktop\\Faculdade\\Sexto periodo\\ALP\\Trabalho 01\\psql-ORM-Csharp\\JANORM\\JANORM.csproj": {
+    "/home/nora/Desktop/Faculdade/Sexto Periodo/ALP/trabalho01/psql-ORM-Csharp/JANORM/JANORM.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\natan\\Desktop\\Faculdade\\Sexto periodo\\ALP\\Trabalho 01\\psql-ORM-Csharp\\JANORM\\JANORM.csproj",
+        "projectUniqueName": "/home/nora/Desktop/Faculdade/Sexto Periodo/ALP/trabalho01/psql-ORM-Csharp/JANORM/JANORM.csproj",
         "projectName": "JANORM",
-        "projectPath": "C:\\Users\\natan\\Desktop\\Faculdade\\Sexto periodo\\ALP\\Trabalho 01\\psql-ORM-Csharp\\JANORM\\JANORM.csproj",
-        "packagesPath": "C:\\Users\\natan\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\natan\\Desktop\\Faculdade\\Sexto periodo\\ALP\\Trabalho 01\\psql-ORM-Csharp\\JANORM\\obj\\",
+        "projectPath": "/home/nora/Desktop/Faculdade/Sexto Periodo/ALP/trabalho01/psql-ORM-Csharp/JANORM/JANORM.csproj",
+        "packagesPath": "/home/nora/.nuget/packages/",
+        "outputPath": "/home/nora/Desktop/Faculdade/Sexto Periodo/ALP/trabalho01/psql-ORM-Csharp/JANORM/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\natan\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/nora/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net7.0"
@@ -32,7 +32,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net7.0": {
@@ -48,12 +54,22 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[7.0.20, 7.0.20]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[7.0.20, 7.0.20]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.410\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.105/RuntimeIdentifierGraph.json"
         }
       }
     }
