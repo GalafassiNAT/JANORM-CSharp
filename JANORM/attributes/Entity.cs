@@ -11,13 +11,18 @@ public class EntityAttribute : Attribute
     }
 }
 
+public enum GenerationMethod
+{
+    AUTO_INCREMENT,
+    UUID
+}
 [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
 public class IdAttribute : Attribute 
 {
-    public string GenerationMethod { get; } = "AUTO_INCREMENT";
+    public GenerationMethod GenMethod { get; }
 
-    public IdAttribute(string generationMethod) 
+    public IdAttribute(GenerationMethod genMethod) 
     {
-        GenerationMethod = generationMethod;
+        GenMethod = genMethod;
     }
 }

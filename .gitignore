@@ -1,0 +1,57 @@
+# Build artefacts
+bin/
+obj/
+
+# VS Code e Rider
+.vscode/
+.idea/
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+
+# Configurações do .NET
+*.log
+*.vspscc
+*.vssscc
+
+# Pacotes NuGet
+*.nupkg
+# (se você tiver uma pasta de pacotes local)
+packages/
+
+# Ferramentas globais .NET
+.tool/
+
+# Arquivos de ambiente
+.env
+.env.local
+# Mas inclua seu exemplo
+!.env.example
+
+# Migrations geradas
+db/migrations/*.sql
+
+# Snapshot de modelo (será regenerado)
+db/model_snapshot.json
+
+# Arquivos de lock/lockfiles
+package-lock.json
+yarn.lock
+
+# Arquivos de publicação/pacote
+publish/
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.cache
+
+# Diretórios do Docker (caso use)
+docker-compose.override.yml
+.docker/
+
+# Outros
+.DS_Store
+Thumbs.db
