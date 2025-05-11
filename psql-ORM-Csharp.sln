@@ -1,8 +1,12 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JANORM", "JANORM\JANORM.csproj", "{76AAACF1-226D-1BDA-3B1A-A075CF1663E9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CA5AF6EA-939C-4A01-96DF-E41826EE20DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JANORM.Core", "src\JANORM.Core\JANORM.Core.csproj", "{576D96BC-C3EB-4B7A-9902-373B6060C9A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JANORM.Client", "src\JANORM.Client\JANORM.Client.csproj", "{79ACCB5C-DA19-402E-B081-E68067DF3189}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,15 +14,23 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{76AAACF1-226D-1BDA-3B1A-A075CF1663E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76AAACF1-226D-1BDA-3B1A-A075CF1663E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76AAACF1-226D-1BDA-3B1A-A075CF1663E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76AAACF1-226D-1BDA-3B1A-A075CF1663E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{576D96BC-C3EB-4B7A-9902-373B6060C9A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{576D96BC-C3EB-4B7A-9902-373B6060C9A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{576D96BC-C3EB-4B7A-9902-373B6060C9A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{576D96BC-C3EB-4B7A-9902-373B6060C9A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79ACCB5C-DA19-402E-B081-E68067DF3189}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79ACCB5C-DA19-402E-B081-E68067DF3189}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79ACCB5C-DA19-402E-B081-E68067DF3189}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79ACCB5C-DA19-402E-B081-E68067DF3189}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3FDA690C-D385-4F36-97AD-728C31A3F54E}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{576D96BC-C3EB-4B7A-9902-373B6060C9A4} = {CA5AF6EA-939C-4A01-96DF-E41826EE20DC}
+		{79ACCB5C-DA19-402E-B081-E68067DF3189} = {CA5AF6EA-939C-4A01-96DF-E41826EE20DC}
 	EndGlobalSection
 EndGlobal

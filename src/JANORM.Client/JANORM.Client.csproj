@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+   
+    <OutputType>Exe</OutputType> 
+    <PackAsTool>True</PackAsTool>
+    <ToolCommandName>janx</ToolCommandName>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <PackageOutputPath>../nupkg</PackageOutputPath>
+    <version>0.0.1</version>
+    <Authors>Natanael Galafassi, Alyson Jorge, João Inoe</Authors>
+    <PackageId>JANORM.Client</PackageId>
+    <AssemblyName>JANORM.Client</AssemblyName>
+    <Description>JANORM is a simple postgres ORM for .Net.</Description>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JANORM.Core\JANORM.Core.csproj" />
+  </ItemGroup>
+
+</Project>

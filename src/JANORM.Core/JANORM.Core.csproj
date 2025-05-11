@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>JANORM.Core</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>Natanael Galafassi, Alyson Jorge, João Inoe</Authors>
+    <Description> Core library for JANORM, a .NET ORM for PSQL databases. </Description>
+    <PackageOutputPath>../nupkg</PackageOutputPath>
+  </PropertyGroup>
+
+</Project>
