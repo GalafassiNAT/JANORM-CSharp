@@ -1,4 +1,5 @@
-﻿using JANORM.Core.definitions;
+﻿using System.Text.Json.Serialization;
+using JANORM.Core.definitions;
 
 namespace JANORM.Client.utils;
 
@@ -19,6 +20,7 @@ public class SchemaFile
     public Source Source { get; set; }
     public List<EntityDefinition> Entities { get; set; }
 
+    [JsonConstructor]
     public SchemaFile(Source source, List<EntityDefinition> entities)
     {
         Source = source;
@@ -30,4 +32,5 @@ public class SchemaFile
         Source = source;
         Entities = new List<EntityDefinition>();
     }
+
 }

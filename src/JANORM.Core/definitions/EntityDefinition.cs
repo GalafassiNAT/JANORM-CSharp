@@ -1,6 +1,8 @@
-﻿using JANORM.Core.attributes;
+﻿using System.Text.Json.Serialization;
+using JANORM.Core.attributes;
 
 namespace JANORM.Core.definitions;
+
 
 public class EntityDefinition
 {
@@ -10,7 +12,7 @@ public class EntityDefinition
     public EntityDefinition(string tableName) {
         TableName = tableName;
     }
-
+    [JsonConstructor]
     public EntityDefinition(string tableName, List<PropertyDefinition> properties) {
         TableName = tableName;
         Properties = properties;
