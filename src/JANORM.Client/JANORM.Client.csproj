@@ -11,7 +11,7 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <PackageOutputPath>../nupkg</PackageOutputPath>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
     <Authors>Natanael Galafassi, Alyson Jorge, João Inoe</Authors>
     <PackageId>JANORM.Client</PackageId>
     <AssemblyName>JANORM.Client</AssemblyName>

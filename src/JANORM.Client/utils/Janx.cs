@@ -86,7 +86,14 @@ public class Janx
             connectionString = rawConnectionString;
         }
 
-        
+        string dbDirectory = Path.GetDirectoryName(connectionString) 
+            ?? throw new InvalidOperationException("Invalid database connection string.");
+        if (!Directory.Exists(dbDirectory))
+        {
+            var adaptedPath = dbDirectory.Replace("Data Source=", string.Empty);
+            Directory.CreateDirectory(adaptedPath.Split("/").First());
+
+        }
 
         IDBFactory dBFactory = new SqliteConnectionFactory(connectionString);
         using var connection = dBFactory.CreateConnection();
@@ -96,6 +103,7 @@ public class Janx
         {
             string tableName = entity.TableName;
             var properties = entity.Properties;
+
             var columns = properties.Select(p => $"{p.Name} {MapToSqliteType(p.Type)}");
             string columnsString = string.Join(", ", columns);
             if (properties.Any(p => p.IsPrimaryKey))
@@ -104,8 +112,10 @@ public class Janx
                 string primaryKeyString = string.Join(", ", primaryKeyColumns);
                 columnsString += $", PRIMARY KEY ({primaryKeyString})";
             }
+
             string createTableQuery = $"CREATE TABLE IF NOT EXISTS {tableName} ({columnsString})";
             using var command = connection.CreateCommand();
+
             command.CommandText = createTableQuery;
             command.ExecuteNonQuery();
             Console.WriteLine($"Table {tableName} created or already exists.");
