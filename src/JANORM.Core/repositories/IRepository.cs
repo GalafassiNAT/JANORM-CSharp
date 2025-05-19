@@ -5,9 +5,9 @@ public interface IRepository<T, Tkey>
     where Tkey : notnull
 {
     Task<T> Insert(T entity);
-    Task<T> FindById(Tkey id);
+    Task<T?> FindById(Tkey id);
     Task<List<T>> FindAll();
-    Task<T> FindOne(dynamic query);
+    Task<T?> FindOne(Dictionary<string, object> query);
     Task<T> Update(T entity, Tkey id);
     Task Delete(Tkey id);
 }

@@ -31,7 +31,7 @@ public class JanRepository<T, TKey> : IRepository<T, TKey>
 
     public async Task<T> Insert(T entity)
     {
-         string tableName = _meta.TableName;
+        string tableName = _meta.TableName;
         var allPropsMeta = _meta.Properties;
         var pkMeta = allPropsMeta.FirstOrDefault(p => p.IsPrimaryKey); 
 
@@ -87,10 +87,13 @@ public class JanRepository<T, TKey> : IRepository<T, TKey>
 
         if (pkMeta != null && pkMeta.GenerationMethod == GenerationMethod.AUTO_INCREMENT)
         {
-            object? lastIdRaw = await _dbService.ExecuteQueryAsync("SELECT last_insert_rowid();");
+            object? lastIdRaw = await _dbService.ExecuteScalarAsync("SELECT last_insert_rowid();");
             if (lastIdRaw != null && lastIdRaw != DBNull.Value)
             {
-                var convertedPk = Convert.ChangeType(lastIdRaw, _pkProperty.PropertyType);
+                Type targetType = _pkProperty.PropertyType;
+                Type underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+                var convertedPk = Convert.ChangeType(lastIdRaw, underlyingType);
                 _pkProperty.SetValue(entity, convertedPk);
             }
         }
@@ -100,33 +103,271 @@ public class JanRepository<T, TKey> : IRepository<T, TKey>
 
     public async Task<T> Update(T entity, TKey id)
     {
-        // Implement update logic here
-        return await Task.FromResult(default(T)) ??
-            throw new NotImplementedException("Update method is not implemented.");
+        string tableName = _meta.TableName;
+        var allProps = _meta.Properties;
+
+        var propsToUpdate = allProps
+            .Where(p => !p.IsPrimaryKey)
+            .ToList();
+
+        if (!propsToUpdate.Any())
+        {
+            Console.WriteLine("No properties to update.");
+            return entity;
+        }
+
+        var setClauses = new List<string>();
+        var dbParams = new List<DbParameter>();
+        int paramIndex = 0;
+
+        foreach (var prop in propsToUpdate)
+        {
+            string columnName = prop.Name;
+            string paramName = $"@param{paramIndex}";
+            setClauses.Add($"\"{columnName}\" = {paramName}");
+
+            var propInfo = typeof(T).GetProperty(prop.Name)!;
+            object? value = propInfo.GetValue(entity) ?? DBNull.Value;
+            dbParams.Add(new SqliteParameter(paramName, value));
+            paramIndex++;
+        }
+
+        string pkColumnName = _pkProperty.Name;
+        string pkParamName = $"@pkId";
+
+        object pkParameterValue = id;
+        if (id is Guid guidId)
+        {
+            pkParameterValue = guidId.ToString().ToUpperInvariant(); 
+        }
+
+        dbParams.Add(new SqliteParameter(pkParamName, pkParameterValue));
+
+        string sql = $@"
+            UPDATE ""{tableName}""
+            SET {string.Join(", ", setClauses)}
+            WHERE ""{pkColumnName}"" = {pkParamName};
+        ";
+
+        await _dbService.ExecuteNonQueryAsync(sql, dbParams.ToArray());
+        return entity;
+
     }
 
     public async Task Delete(TKey id)
     {
-        // Implement delete logic here
-        await Task.CompletedTask;
+        string tableName = _meta.TableName;
+        string pkColumnName = _pkProperty.Name;
+
+        string sql = $@"
+            DELETE FROM ""{tableName}""
+            WHERE ""{pkColumnName}"" = @id;
+        ";
+        
+        object parameterValue = id;
+        if (id is Guid guidId)
+        {
+            parameterValue = guidId.ToString().ToUpperInvariant(); 
+        }
+
+        var dbParams = new List<DbParameter>
+        {
+            new SqliteParameter("@id", parameterValue)
+        };
+
+        await _dbService.ExecuteNonQueryAsync(sql, dbParams.ToArray());
     }
 
-    public async Task<T> FindById(TKey id)
+    public async Task<T?> FindById(TKey id)
     {
-        // Implement get by id logic here
-        return await Task.FromResult(default(T)) ??
-            throw new NotImplementedException("FindById method is not implemented.");
+        string tableName = _meta.TableName;
+        string pkColumnName = _pkProperty.Name;
+        string sql = $@"
+            SELECT * FROM ""{tableName}""
+            WHERE ""{pkColumnName}"" = @id;
+        ";
+        object parameterValue = id;
+        if (id is Guid guidId)
+        {
+            parameterValue = guidId.ToString().ToUpperInvariant();       
+        }
+
+        var dbParams = new List<DbParameter>
+        {
+            new SqliteParameter("@id", parameterValue)
+        };
+
+        var result = await _dbService.ExecuteQueryAsync(sql, dbParams.ToArray());
+        if (result.Count == 0)
+        {
+            return null;
+        }
+
+        var row = result[0];
+        var entity = Activator.CreateInstance<T>();
+
+        foreach (var prop in _meta.Properties)
+        {
+            if (row.TryGetValue(prop.Name, out object? dbValue)
+                && dbValue != DBNull.Value)
+            {
+                var propInfo = typeof(T).GetProperty(prop.Name);
+                if (propInfo != null && propInfo.CanWrite)
+                {
+                    Type targetType = propInfo.PropertyType;
+                    Type underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+                    try
+                    {
+                        object convertedValue;
+                        if (underlyingType == typeof(Guid) && dbValue is string guidString)
+                        {
+                            convertedValue = Guid.Parse(guidString);
+                        }
+                        else
+                        {
+                            convertedValue = Convert.ChangeType(dbValue, underlyingType);
+                        }
+                        propInfo.SetValue(entity, convertedValue);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error converting value for property '{prop.Name}': {ex.Message}");
+                        throw new InvalidOperationException($"Failed to convert value for property '{prop.Name}', TargetType: '{underlyingType.Name} not reached", ex);
+                    }
+                }
+            }
+        }
+
+        return entity;
     }
 
     public async Task<List<T>> FindAll()
     {
-        // Implement get all logic here
-        return await Task.FromResult(new List<T>());
+        string tableName = _meta.TableName;
+        string sql = $@"
+            SELECT * FROM ""{tableName}"";
+        ";
+
+        var result = await _dbService.ExecuteQueryAsync(sql);
+        var entities = new List<T>();
+
+        foreach (var row in result)
+        {
+            var entity = Activator.CreateInstance<T>();
+
+            foreach (var prop in _meta.Properties)
+            {
+               if (row.TryGetValue(prop.Name, out object? dbValue) && dbValue != DBNull.Value) // Usar TryGetValue
+                {
+                    var propInfo = typeof(T).GetProperty(prop.Name);
+                    if (propInfo != null && propInfo.CanWrite)
+                    {
+                        Type targetType = propInfo.PropertyType;
+                        Type underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                        try
+                        {
+                            object convertedValue;
+                            if (underlyingType == typeof(Guid) && dbValue is string stringGuid)
+                            {
+                                convertedValue = Guid.Parse(stringGuid);
+                            }
+                            else
+                            {
+                                convertedValue = Convert.ChangeType(dbValue, underlyingType);
+                            }
+                            propInfo.SetValue(entity, convertedValue);
+                        }
+                        catch (Exception ex)
+                        {
+                             Console.WriteLine($"Error converting value for property {prop.Name} in FindAll. DB Value: '{dbValue}' (Type: {dbValue?.GetType().Name}). Target Type: '{underlyingType.Name}'. Error: {ex.Message}");
+                        }
+                    }
+                }
+            }
+
+            entities.Add(entity);
+        }
+
+        return entities;
     }
 
-    public async Task<T> FindOne(dynamic query)
+    public async Task<T?> FindOne(Dictionary<string, object> query)
     {
-        return await Task.FromResult(default(T)) 
-            ?? throw new NotImplementedException("FindOne method is not implemented.");
+        if (query == null || !query.Any())
+        {
+            throw new ArgumentException("query dictionary cannot be null or empty for FindOne.", nameof(query));
+        }
+
+        string tableName = _meta.TableName;
+        var dbParams = new List<DbParameter>();
+        var whereClauses = new List<string>();
+        int paramIndex = 0;
+
+        foreach (var condition in query)
+        {
+            var propMeta = _meta.Properties.FirstOrDefault(p => p.Name.Equals(condition.Key, StringComparison.OrdinalIgnoreCase)) ?? throw new ArgumentException($"Invalid column name '{condition.Key}' for entity {typeof(T).Name}.");
+            string columnName = propMeta.Name; 
+            string paramName = $"@param{paramIndex}";
+
+            whereClauses.Add($"\"{columnName}\" = {paramName}");
+
+            object paramValue = condition.Value;
+            if (condition.Value is Guid guidValue && propMeta.Type == "UUID")
+            {
+                paramValue = guidValue.ToString().ToUpperInvariant(); 
+            }
+
+            dbParams.Add(new SqliteParameter(paramName, paramValue ?? DBNull.Value));
+            paramIndex++;
+        }
+
+        string sql = $@"
+            SELECT * FROM ""{tableName}""
+            WHERE {string.Join(" AND ", whereClauses)}
+            LIMIT 1; 
+        "; 
+
+        var result = await _dbService.ExecuteQueryAsync(sql, dbParams.ToArray());
+
+        if (result.Count == 0)
+        {
+            return null; 
+        }
+
+        var row = result[0];
+        var entity = Activator.CreateInstance<T>();
+
+        foreach (var propMetaInSchema in _meta.Properties) 
+        {
+            if (row.TryGetValue(propMetaInSchema.Name, out object? dbValue) && dbValue != DBNull.Value)
+            {
+                var propInfo = typeof(T).GetProperty(propMetaInSchema.Name);
+                if (propInfo != null && propInfo.CanWrite)
+                {
+                    Type targetType = propInfo.PropertyType;
+                    Type underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                    try
+                    {
+                        object convertedValue;
+                        if (underlyingType == typeof(Guid) && dbValue is string stringGuid)
+                        {
+                            convertedValue = Guid.Parse(stringGuid);
+                        }
+                        else
+                        {
+                            convertedValue = Convert.ChangeType(dbValue, underlyingType);
+                        }
+                        propInfo.SetValue(entity, convertedValue);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error converting value for property '{propMetaInSchema.Name}' in FindOne. DB Value: '{dbValue}' (Type: {dbValue?.GetType().Name}). Target Type: '{underlyingType.Name}'. Error: {ex.Message}");
+                        throw new InvalidOperationException($"Failed to convert value for property '{propMetaInSchema.Name}', TargetType: '{underlyingType.Name} not reached", ex);
+                    }
+                }
+            }
+        }
+        return entity;
     }
 }
