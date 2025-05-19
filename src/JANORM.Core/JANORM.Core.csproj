@@ -5,14 +5,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>JANORM.Core</PackageId>
-    <Version>0.0.4</Version>
+    <Version>0.0.6</Version>
     <Authors>Natanael Galafassi, Alyson Jorge, João Inoe</Authors>
     <Description> Core library for JANORM, a .NET ORM for PSQL databases. </Description>
     <PackageOutputPath>../nupkg</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using JANORM.Client.utils;
+
 
 namespace JANORM.Core.utils;
 
@@ -7,7 +7,7 @@ public static class Utils
 {
     public static string GetConnectionString()
     {
-        
+
         SchemaFile schemaFile = GetSchemaFile();
 
         string rawConnectionString = schemaFile.Source.DatabaseUrl;
@@ -18,7 +18,7 @@ public static class Utils
             throw new InvalidOperationException("Database URL is not specified in the schema file.");
         }
 
-         if (rawConnectionString.StartsWith("env(") && rawConnectionString.EndsWith(")"))
+        if (rawConnectionString.StartsWith("env(") && rawConnectionString.EndsWith(")"))
         {
             string envVariable = rawConnectionString[4..^1];
             connectionString = Env(envVariable);
@@ -75,7 +75,7 @@ public static class Utils
 
         Console.WriteLine($"Fetching environment variable: {value}");
 
-        string dbPath = Environment.GetEnvironmentVariable(value) 
+        string dbPath = Environment.GetEnvironmentVariable(value)
             ?? throw new InvalidOperationException($"Environment variable {value} not found.");
 
         if (dbPath.Contains("Data Source=", StringComparison.OrdinalIgnoreCase))

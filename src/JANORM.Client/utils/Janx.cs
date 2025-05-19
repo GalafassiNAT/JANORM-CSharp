@@ -65,6 +65,8 @@ public class Janx
         IDBFactory dBFactory = new SqliteConnectionFactory(connectionString);
         IDBService dbService = new SqliteDBService(dBFactory);
 
+        CreateDbSource(connectionString);
+
         SchemaFile schemaFile = Utils.GetSchemaFile();
 
         foreach (var entity in schemaFile.Entities)
@@ -149,5 +151,15 @@ public class Janx
     
     }
 
-    
+    private static void CreateDbSource(string connectionString)
+    {
+        string dbDirectory = Path.GetDirectoryName(connectionString) 
+            ?? throw new InvalidOperationException("Invalid database connection string.");
+        if (!Directory.Exists(dbDirectory))
+        {
+            var adaptedPath = dbDirectory.Replace("Data Source=", string.Empty);
+            Directory.CreateDirectory(adaptedPath.Split("/").First());
+            Console.WriteLine($"Database directory created at: {adaptedPath}");
+        }
+    }
 }
