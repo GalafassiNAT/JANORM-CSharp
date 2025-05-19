@@ -4,6 +4,9 @@ using JANORM.Client.utils;
 using System.CommandLine;
 using JANORM.Client.services;
 using JANORM.Client.services.Implementation;
+using JANORM.Core.services;
+using JANORM.Core.services.Implementation;
+using DotNetEnv;
 
 namespace JANORM.Client;
 
@@ -11,6 +14,10 @@ public class Program
 {   
     public static async Task<int> Main(string[] args) 
     {
+        
+        
+        Env.Load();
+
         // Bloco para injetão de dependências
         ServiceCollection services = new();
         services.AddTransient<IInspectorService, InspectorService>();
@@ -64,11 +71,11 @@ public class Program
         }, asmOption);
 
 
-        generateCommand.SetHandler(() => 
+        pushCommand.SetHandler(async () => 
         {
             try
             {
-                Janx.Push();
+                await Janx.Push();
                 Console.WriteLine("Schema pushed to the database successfully.");
             }
             catch (Exception ex)
@@ -77,11 +84,11 @@ public class Program
                 Console.WriteLine($"Error during command execution: {ex.Message}");
                 Console.ResetColor();
             }
-        }
-        );
+        });
 
         rootCommand.AddCommand(initCommand);
         rootCommand.AddCommand(generateCommand);
+        rootCommand.AddCommand(pushCommand);
         return await rootCommand.InvokeAsync(args);
     }
 }

@@ -2,7 +2,7 @@
 using System.Data.Common;
 using Microsoft.Data.Sqlite;
 
-namespace JANORM.Client.services.Implementation;
+namespace JANORM.Core.services.Implementation;
 
 public class SqliteConnectionFactory : IDBFactory
 {   

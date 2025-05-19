@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using JANORM.Client.utils;
 using JANORM.Core.attributes;
 using JANORM.Core.definitions;
+using JANORM.Core.utils;
 
 namespace JANORM.Client.services.Implementation;
 
@@ -47,9 +47,12 @@ public class InspectorService: IInspectorService
         {   
 
             var propName = property.Name;
-            var propType = property.PropertyType.Name;
+
+            Type nameForType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+
+            var propType = nameForType.Name;
             var isPrimaryKey = property.GetCustomAttribute<IdAttribute>() != null;
-            var isNullable = true; 
+            var isNullable = property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>); 
             GenerationMethod genMethod;
             if (isPrimaryKey) 
             {

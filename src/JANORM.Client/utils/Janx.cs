@@ -1,8 +1,13 @@
 ﻿using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using JANORM.Client.services;
-using JANORM.Client.services.Implementation;
+using JANORM.Core.services;
+using JANORM.Core.services.Implementation;
+using JANORM.Core.attributes;
+using JANORM.Core.definitions;
+using JANORM.Core.utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JANORM.Client.utils;
@@ -53,109 +58,96 @@ public class Janx
 
     }
 
-    public static void Push() 
+    public static async Task Push()
     {
-        string folder = Path.Combine(Directory.GetCurrentDirectory(), "JANORM");
-        string schemaPath = Path.Combine(folder, "schema.jan");
-
-        if (!File.Exists(schemaPath)) 
-        {
-            Console.WriteLine($"Schema file not found at: {schemaPath}");
-            return;
-        }
-
-        string jsonText = File.ReadAllText(schemaPath);
-        SchemaFile schemaFile = JsonSerializer.Deserialize<SchemaFile>(jsonText) 
-            ?? throw new InvalidOperationException("Failed to deserialize schema file.");
-
-        string rawConnectionString = schemaFile.Source.DatabaseUrl;
-        string connectionString;
-
-        if (string.IsNullOrEmpty(rawConnectionString))
-        {
-            throw new InvalidOperationException("Database URL is not specified in the schema file.");
-        }
-
-        if (rawConnectionString.StartsWith("env(") && rawConnectionString.EndsWith(")"))
-        {
-            string envVariable = rawConnectionString[4..^1];
-            connectionString = Env(envVariable);
-        }
-        else
-        {
-            connectionString = rawConnectionString;
-        }
-
-        string dbDirectory = Path.GetDirectoryName(connectionString) 
-            ?? throw new InvalidOperationException("Invalid database connection string.");
-        if (!Directory.Exists(dbDirectory))
-        {
-            var adaptedPath = dbDirectory.Replace("Data Source=", string.Empty);
-            Directory.CreateDirectory(adaptedPath.Split("/").First());
-
-        }
+        string connectionString = Utils.GetConnectionString();
 
         IDBFactory dBFactory = new SqliteConnectionFactory(connectionString);
-        using var connection = dBFactory.CreateConnection();
-        connection.Open();
-        
+        IDBService dbService = new SqliteDBService(dBFactory);
+
+        SchemaFile schemaFile = Utils.GetSchemaFile();
+
         foreach (var entity in schemaFile.Entities)
         {
             string tableName = entity.TableName;
             var properties = entity.Properties;
 
-            var columns = properties.Select(p => $"{p.Name} {MapToSqliteType(p.Type)}");
-            string columnsString = string.Join(", ", columns);
-            if (properties.Any(p => p.IsPrimaryKey))
+            var sb = new StringBuilder();
+            sb.Append($"CREATE TABLE IF NOT EXISTS \"{tableName}\" (");
+            var propDefinitions = new List<string>();
+            PropertyDefinition? pkHandler = null;
+
+            foreach (var prop in properties)
             {
-                var primaryKeyColumns = properties.Where(p => p.IsPrimaryKey).Select(p => p.Name);
-                string primaryKeyString = string.Join(", ", primaryKeyColumns);
-                columnsString += $", PRIMARY KEY ({primaryKeyString})";
+                string columnType = Utils.MapToSqliteType(prop.Type);
+                string columnName = $"\"{prop.Name}\" {columnType}";
+
+                if (prop.IsPrimaryKey)
+                {
+                    if (properties.Count(p => p.IsPrimaryKey) == 1)
+                    {
+                        columnName += " PRIMARY KEY";
+                        if (prop.Type == "INTEGER" && prop.GenerationMethod == GenerationMethod.AUTO_INCREMENT)
+                        {
+                            columnName += " AUTOINCREMENT";
+                        }
+                        else if (prop.Type != "INTEGER" && prop.GenerationMethod == GenerationMethod.AUTO_INCREMENT)
+                        {
+                            Console.BackgroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"Warning: Primary key '{prop.Name}' is not of type INTEGER. Auto-increment will not be applied.");
+                            Console.ResetColor();
+                        }
+
+                        pkHandler = prop;
+                    }
+                }
+                if (!prop.IsNullable)
+                {
+                    columnName += " NOT NULL";
+                }
+
+                propDefinitions.Add(columnName);
+            }
+            sb.Append(string.Join(", ", propDefinitions));
+
+            var pkProps = properties.Where(p => p.IsPrimaryKey && p != pkHandler).ToList();
+            if (pkProps.Any())
+            {
+                var pkColumnNames = pkProps.Select(p => $"\"{p.Name}\"");
+                sb.Append($", PRIMARY KEY ({string.Join(", ", pkColumnNames)})");
             }
 
-            string createTableQuery = $"CREATE TABLE IF NOT EXISTS {tableName} ({columnsString})";
-            using var command = connection.CreateCommand();
+            sb.Append(");");
+            string createTableQuery = sb.ToString();
+            Console.WriteLine($"Executing query: {createTableQuery}");
 
-            command.CommandText = createTableQuery;
-            command.ExecuteNonQuery();
-            Console.WriteLine($"Table {tableName} created or already exists.");
+            await dbService.ExecuteNonQueryAsync(createTableQuery);
+            Console.WriteLine($"Table {tableName} created");
+
+
+            // var columns = properties.Select(p => $"{p.Name} {MapToSqliteType(p.Type)}");
+            // string columnsString = string.Join(", ", columns);
+            // if (properties.Any(p => p.IsPrimaryKey))
+            // {
+            //     var primaryKeyColumns = properties.Where(p => p.IsPrimaryKey).Select(p => p.Name);
+            //     string primaryKeyString = string.Join(", ", primaryKeyColumns);
+            //     columnsString += $", PRIMARY KEY ({primaryKeyString})";
+            // }
+
+            // string createTableQuery = $"CREATE TABLE IF NOT EXISTS {tableName} ({columnsString})";
+            // using var command = connection.CreateCommand();
+
+            // command.CommandText = createTableQuery;
+            // command.ExecuteNonQuery();
+            // Console.WriteLine($"Table {tableName} created");
 
         }
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Schema pushed to the database successfully.");
+        Console.ResetColor();
     
     }
 
-    public static string MapToSqliteType (string csType) 
-    {
-        return csType.ToLower() switch
-        {
-            "int" => "INTEGER",
-            "int64" => "INTEGER",
-            "int32" => "INTEGER",
-            "short" => "INTEGER",
-            "long" => "INTEGER",
-            "string" => "TEXT",
-            "bool" => "BOOLEAN",
-            "double" => "REAL",
-            "float" => "REAL",
-            "datetime" => "NUMERIC",
-            "datetimeoffset" => "NUMERIC",
-            "guid" => "TEXT",
-            "byte" => "BLOB",
-            _ => "TEXT"
-        };
-    }
-
-    public static string Env(string value)
-    {
-
-        string dbPath = Environment.GetEnvironmentVariable(value) 
-            ?? throw new InvalidOperationException($"Environment variable {value} not found.");
-
-        if (dbPath.Contains("Data Source=", StringComparison.OrdinalIgnoreCase))
-        {
-            return dbPath;
-        }
-
-        return "Data Source=" + dbPath;
-    }
+    
 }

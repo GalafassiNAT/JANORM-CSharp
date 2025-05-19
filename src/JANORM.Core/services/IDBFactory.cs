@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace JANORM.Client.services;
+namespace JANORM.Core.services;
 
 public interface IDBFactory
 {

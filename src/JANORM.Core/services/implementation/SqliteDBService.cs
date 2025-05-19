@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace JANORM.Client.services.Implementation;
+namespace JANORM.Core.services.Implementation;
 
 public class SqliteDBService : IDBService
 {   
